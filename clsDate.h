@@ -8,10 +8,18 @@ using namespace std;
 
 class clsDate {
 private:
-    short _Year, _Month, _Day;
+    short _Year = 1900;
+    short _Month = 1;
+    short _Day = 1;
 
 public:
-    clsDate() {};
+    clsDate() {
+        time_t t = time(0);
+        tm* now = localtime(&t);
+        _Day = now->tm_mday;
+        _Month = now->tm_mon + 1;
+        _Year = now->tm_year + 1900;
+    };
 
     clsDate(short Year, short Month, short Day) {
         _Year = Year;
@@ -24,6 +32,13 @@ public:
         _Year = stoi(vDate.at(0));
         _Month = stoi(vDate.at(1));
         _Day = stoi(vDate.at(2));
+    }
+
+    clsDate(short DateOrderInYear, short Year) {
+        clsDate Date = ConvertTotalDaysToDate(DateOrderInYear, Year);
+        _Day = Date.getDay();
+        _Month = Date.getMonth();
+        _Year = Date.getYear();
     }
 
     /// @brief set a value to the private member year
@@ -54,6 +69,11 @@ public:
     /// @brief return the private member day value
     short getDay() {
         return _Day;
+    }
+
+    /// @brief retuen the date in a string form
+    void Print() {
+        cout << DateToString() << endl;
     }
 
     /// @brief checking if the year is a leap year or not
@@ -547,6 +567,7 @@ public:
         return clsDate((CurrentTime->tm_year + 1900), (CurrentTime->tm_mon + 1), (CurrentTime->tm_mday));
     }
 
+    /// @brief calculate the age from the birth date to the current date
     static short AgeInDays(clsDate BirthDate) {
         clsDate CurrentDate = getSystemTime();
         return DifferentInDays(BirthDate, CurrentDate, true);
@@ -754,6 +775,21 @@ public:
         return DaysUntilEndOfYear(*this);
     }
 
+    /// @brief calculate business days with in a period of time
+    static short BusinessDays(clsDate DateFrom, clsDate DateTo) {
+        short DaysCount = 0;
+        if (IsDate1AfterDate2(DateFrom, DateTo)) {
+            Swap(DateFrom, DateTo);
+        }
+        while (IsDate1BeforeDate2(DateFrom, DateTo)) {
+            if(IsBusinessDay(DateFrom)) {
+                DaysCount++;
+            }
+            DateFrom = IncreaseByOneDay(DateFrom);
+        }
+        return DaysCount;
+    }
+
     /// @brief calculate the actual vacation days from the weekends only.
     /// Add the public holidays manualy because it's different from country to another
     static short ActualVacationDays(clsDate DateFrom, clsDate DateTo) {
@@ -803,12 +839,12 @@ public:
         return enDatesCompare::eAfter;
     }
 
-    static string ConvertToString(clsDate Date, string Separator = "/") {
+    static string DateToString(clsDate Date, string Separator = "/") {
         return to_string(Date.getYear()) + Separator + to_string(Date.getMonth()) + Separator + to_string(Date.getDay());
     }
 
-    string ConvertToString(string Separator = "/") {
-        return ConvertToString(*this, Separator);
+    string DateToString(string Separator = "/") {
+        return DateToString(*this, Separator);
     }
 
     /// @brief Convert date to string date
